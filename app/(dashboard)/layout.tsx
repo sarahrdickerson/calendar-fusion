@@ -1,6 +1,9 @@
-import React from 'react'
+"use client"; 
+
+import React from 'react';
 import Navbar from '@/components/navbar';
 import Sidebar from '@/components/sidebar';
+import ClientOnly from '@/components/ClientOnly';
 
 const DashboardLayout = ({
     children
@@ -8,13 +11,18 @@ const DashboardLayout = ({
     children: React.ReactNode;
 }) => {
   return (
-    <div className='h-full relative'>
-        <div className='hidden h-full md:flex md:w-72 md:flex-col md:fixed md:inset-y-0 z-[80] bg-gray-900'>
+    <div className='h-full relative overflow-hidden max-w-[2520px]'>
+        <div className='hidden h-full md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 z-[80] bg-gray-900'>
             <Sidebar/>
         </div>
-        <main className='md:pl-72'>
-            <Navbar/>
-            {children}
+        <main className='md:pl-60'>
+            <ClientOnly>
+                <Navbar/>
+            </ClientOnly>
+            <div className='bg-gray-100 h-screen'>
+                {children}
+            </div>
+            
         </main>
     </div>
   )
