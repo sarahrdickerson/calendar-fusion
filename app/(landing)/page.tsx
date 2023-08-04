@@ -1,11 +1,23 @@
+"use client";
+
 import LandingNavbar from '@/components/landing/LandingNavbar'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import React from 'react'
 import { Balancer } from "react-wrap-balancer"
-
+import { useSession } from 'next-auth/react'
 
 const LandingPage = () => {
+    const { status, data: session } = useSession();
+
+    if (status === 'loading') {
+        return (
+          <div className='flex items-center justify-center h-screen z-10'>
+              <span className="loading loading-spinner text-primary"></span>  
+          </div>
+        );
+    }
+
   return (
     // <div>
     //     LandingPage (Unprotected)

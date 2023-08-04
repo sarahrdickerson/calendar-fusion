@@ -1,0 +1,205 @@
+// // This is your Prisma schema file,
+// // learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// generator client {
+//   provider = "prisma-client-js"
+// }
+
+// datasource db {
+//   provider = "mongodb"
+//   url      = env("DATABASE_URL")
+// }
+
+// model User {
+//   id             String    @id @default(auto()) @map("_id") @db.ObjectId
+//   name           String?
+//   email          String?   @unique
+//   emailVerified  DateTime?
+//   image          String?
+//   hashedPassword String?
+//   createdAt      DateTime  @default(now())
+//   updatedAt      DateTime  @updatedAt
+
+//   calendarIds String[]   @db.ObjectId
+//   calendars   Calendar[] @relation(fields: [calendarIds], references: [id])
+
+//   invitedGroupIds String[] @db.ObjectId
+//   invitedGroups   Group[]  @relation("User_InvitedGroups", fields: [invitedGroupIds], references: [id])
+
+//   membership GroupMembership[]
+
+//   // eventIds String[] @db.ObjectId
+//   // events   Event[]  @relation(fields: [eventIds], references: [id])
+
+//   accounts Account[]
+//   // messages Message[]
+//   Group    Group?    @relation(fields: [groupId], references: [id])
+//   groupId  String?   @db.ObjectId
+// }
+
+// model Account {
+//   id                String  @id @default(auto()) @map("_id") @db.ObjectId
+//   userId            String  @db.ObjectId
+//   type              String
+//   provider          String
+//   providerAccountId String
+//   refresh_token     String? @db.String
+//   access_token      String? @db.String
+//   expires_at        Int?
+//   token_type        String?
+//   scope             String?
+//   id_token          String? @db.String
+//   session_state     String?
+
+//   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+//   @@unique([provider, providerAccountId])
+// }
+
+// // calendar model, each calendar can have multiple source calendars from a users google calendar account
+// // the source calendars are stored in the sourceCalendarIds field
+// // and all events of the source calendars are displayed as one calendar
+// model Calendar {
+//   id                String           @id @default(auto()) @map("_id") @db.ObjectId
+//   userId            String           @db.ObjectId
+//   name              String
+//   color             String
+//   sourceCalendarIds String[]         @db.ObjectId
+//   sourceCalendars   SourceCalendar[] @relation(fields: [sourceCalendarIds], references: [id])
+
+//   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+//   Group   Group?  @relation(fields: [groupId], references: [id])
+//   groupId String? @db.ObjectId
+// }
+
+// // source calendar model, each source calendar is a calendar from a users google calendar account
+// // has a calendarId member that stores the calendar id of the source google calendar to be used to fetch events from google api
+// model SourceCalendar {
+//   id         String   @id @default(auto()) @map("_id") @db.ObjectId
+//   calendarId String   @db.ObjectId
+//   calendar   Calendar @relation(fields: [calendarId], references: [id])
+// }
+
+// model Group {
+//   id         String            @id @default(auto()) @map("_id") @db.ObjectId
+//   name       String
+//   membership GroupMembership[]
+//   Calendar   Calendar[]
+//   User       User?             @relation(fields: [userId], references: [id])
+//   userId     String?           @db.ObjectId
+//   User       User[]
+// }
+
+// model GroupMembership {
+//   id      String @id @default(auto()) @map("_id") @db.ObjectId
+//   userId  String @db.ObjectId
+//   user    User   @relation(fields: [userId], references: [id])
+//   groupId String @db.ObjectId
+//   group   Group  @relation(fields: [groupId], references: [id])
+// }
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  name           String?
+  email          String?   @unique
+  emailVerified  DateTime?
+  image          String?
+  hashedPassword String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  calendarIds String[]   @db.ObjectId
+  calendars   Calendar[]
+
+  memberships GroupMembership[]
+  accounts    Account[]
+
+  invited   Invitation[] @relation("UserToInvitation")
+  invitedBy Invitation[] @relation("InviterToInvitation")
+}
+
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.String
+  access_token      String? @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.String
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model CalendarSource {
+  id               String         @id @default(auto()) @map("_id") @db.ObjectId
+  calendarId       String         @db.ObjectId
+  sourceCalendarId String         @db.ObjectId
+  Calendar         Calendar       @relation(fields: [calendarId], references: [id])
+  SourceCalendar   SourceCalendar @relation(fields: [sourceCalendarId], references: [id])
+
+  @@unique([calendarId, sourceCalendarId], name: "calendar_source_unique")
+}
+
+model Calendar {
+  id              String           @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String           @db.ObjectId
+  name            String
+  color           String
+  calendarSources CalendarSource[]
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Group   Group?  @relation(fields: [groupId], references: [id])
+  groupId String? @db.ObjectId
+}
+
+model SourceCalendar {
+  id               String           @id @default(auto()) @map("_id") @db.ObjectId
+  googleCalendarId String // Google Calendar ID
+  calendarSources  CalendarSource[]
+}
+
+model Group {
+  id          String            @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  memberships GroupMembership[]
+  invitations Invitation[]
+  calendars   Calendar[]
+
+  // Add any other fields required for the Group
+}
+
+model GroupMembership {
+  id      String @id @default(auto()) @map("_id") @db.ObjectId
+  userId  String @db.ObjectId
+  user    User   @relation(fields: [userId], references: [id])
+  groupId String @db.ObjectId
+  group   Group  @relation(fields: [groupId], references: [id])
+}
+
+model Invitation {
+  id        String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String  @db.ObjectId
+  groupId   String  @db.ObjectId
+  inviterId String  @db.ObjectId
+  accepted  Boolean @default(false)
+
+  user    User  @relation("UserToInvitation", fields: [userId], references: [id])
+  group   Group @relation(fields: [groupId], references: [id])
+  inviter User  @relation("InviterToInvitation", fields: [inviterId], references: [id])
+}
