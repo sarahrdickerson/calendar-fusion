@@ -30,6 +30,9 @@ export const authOptions: AuthOptions = {
         strategy: "jwt",
     },
     secret: process.env.JWT_SECRET as string,
+    pages: {
+        signIn: "/",
+    }
 };
 
 const handler = NextAuth(authOptions);
