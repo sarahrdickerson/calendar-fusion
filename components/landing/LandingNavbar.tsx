@@ -18,6 +18,7 @@ import {
     DialogTitle,
     DialogTrigger,
   } from "@/components/ui/dialog"
+import RegisterForm from '../auth/RegisterForm';
   
 
 const LandingNavbar = () => {
@@ -63,7 +64,7 @@ const LandingNavbar = () => {
                         <DialogContent className='items-center justify-center flex'>
                             <DialogHeader className='gap-2'>
                                 <DialogTitle>Register for Calendar Fusion</DialogTitle>
-                                <LoginForm />
+                                <RegisterForm />
                             </DialogHeader>
                         </DialogContent>
                     </Dialog>
